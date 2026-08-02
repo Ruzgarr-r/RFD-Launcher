@@ -37,14 +37,14 @@ HANDLE hChildStd_OUT_Wr = NULL;
 PROCESS_INFORMATION piProcInfo;
 std::string logBuffer;
 
-ImTextureID texLogo = nullptr;
-ImTextureID texUser = nullptr;
-ImTextureID texAdd = nullptr;
-ImTextureID texArrowDown = nullptr;
-ImTextureID texHost = nullptr;
-ImTextureID texJoin = nullptr;
-ImTextureID texLog = nullptr;
-ImTextureID texSettings = nullptr;
+ImTextureID texLogo = (ImTextureID)0;
+ImTextureID texUser = (ImTextureID)0;
+ImTextureID texAdd = (ImTextureID)0;
+ImTextureID texArrowDown = (ImTextureID)0;
+ImTextureID texHost = (ImTextureID)0;
+ImTextureID texJoin = (ImTextureID)0;
+ImTextureID texLog = (ImTextureID)0;
+ImTextureID texSettings = (ImTextureID)0;
 
 std::string TrimString(const std::string& str) {
     size_t first = str.find_first_not_of(' ');
@@ -273,7 +273,7 @@ void RenderTopBar() {
         ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 5);
         ImGui::Text("Hesap ekleyin");
         ImGui::SameLine();
-        if (ImGui::ImageButton(texAdd, ImVec2(20, 20))) {
+        if (ImGui::ImageButton("##AddUserBtnEmpty", texAdd, ImVec2(20, 20))) {
             showAddUserPopup = true;
         }
     } else {
@@ -284,11 +284,11 @@ void RenderTopBar() {
             ImGui::Text("%s", appCfg.selected_username.c_str());
         }
         ImGui::SameLine();
-        if (ImGui::ImageButton(texArrowDown, ImVec2(20, 20))) {
+        if (ImGui::ImageButton("##SelectUserBtn", texArrowDown, ImVec2(20, 20))) {
             ImGui::OpenPopup("UserSelectPopup");
         }
         ImGui::SameLine();
-        if (ImGui::ImageButton(texAdd, ImVec2(20, 20))) {
+        if (ImGui::ImageButton("##AddUserBtnPopulated", texAdd, ImVec2(20, 20))) {
             showAddUserPopup = true;
         }
         
@@ -427,7 +427,7 @@ void RenderHostTab() {
 
     if (showNoConfigWarning && hostConfigPath.empty()) {
         ImGui::SetCursorPos(ImVec2(ImGui::GetWindowWidth() - 400, ImGui::GetWindowHeight() - 55));
-        ImGui::TextColored(ImVec4(1.0f, 0.2f, 0.2f, 1.0f), "Please select your config file");
+        ImGui::TextColored(ImVec4(1.0f, 0.2f, 0.2f, 1.0f), "Lutfen config dosyanizi secin");
     }
 
     ImGui::SetCursorPos(ImVec2(ImGui::GetWindowWidth() - 400, ImGui::GetWindowHeight() - 200));
@@ -489,7 +489,7 @@ void RenderLogsTab() {
 }
 
 void RenderSettingsTab() {
-    ImGui::TextColored(ImVec4(0.5f, 0.5f, 0.5f, 1.0f), "Settings is w.i.p.");
+    ImGui::TextColored(ImVec4(0.5f, 0.5f, 0.5f, 1.0f), "Settings bölümü şimdilik çalışmıyor.");
 }
 
 void InitializeApp() {
