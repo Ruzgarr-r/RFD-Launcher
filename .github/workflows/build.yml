@@ -1,0 +1,30 @@
+name: Build RFD Launcher
+
+on:
+  push:
+    branches: [ "main", "master" ]
+  pull_request:
+    branches: [ "main", "master" ]
+  workflow_dispatch: # GitHub üzerinden elle başlatabilmeniz için
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+    - name: get the codes
+      uses: actions/checkout@v4
+
+    - name: install msbuild
+      uses: microsoft/setup-msbuild@v2
+
+    - name: build
+      run: msbuild RFD-Launcher.sln /p:Configuration=Release /p:Platform=x64
+
+    - name: artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: RFD-Launcher-x64
+        path: |
+          x64/Release/*.exe
+          RFD-Launcher/x64/Release/*.exe
