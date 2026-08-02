@@ -5,23 +5,26 @@ on:
     branches: [ "main", "master" ]
   pull_request:
     branches: [ "main", "master" ]
-  workflow_dispatch: # GitHub üzerinden elle başlatabilmeniz için
+  workflow_dispatch:
 
 jobs:
   build:
     runs-on: windows-latest
 
     steps:
-    - name: get the codes
+    - name: Proje Kodlarını Çek (Checkout)
       uses: actions/checkout@v4
 
-    - name: install msbuild
+    - name: Dear ImGui Kütüphanesini İndir
+      run: git clone --depth 1 https://github.com/ocornut/imgui.git imgui
+
+    - name: MSBuild Kur
       uses: microsoft/setup-msbuild@v2
 
-    - name: build
+    - name: Solution'ı Derle (Release x64)
       run: msbuild RFD-Launcher.sln /p:Configuration=Release /p:Platform=x64
 
-    - name: artifact
+    - name: Derlenen .exe Dosyasını Yayınla
       uses: actions/upload-artifact@v4
       with:
         name: RFD-Launcher-x64
