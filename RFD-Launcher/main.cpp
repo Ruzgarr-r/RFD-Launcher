@@ -443,8 +443,8 @@ void RenderTabButtons() {
         ImGui::SameLine();
     };
 
-    DrawTab(0, texHost, "Host");
-    DrawTab(1, texJoin, "Join");
+    DrawTab(0, texHost, "Host##TabBtn");
+    DrawTab(1, texJoin, "Join##TabBtn");
     DrawTab(2, texLog, "Logs");
     DrawTab(3, texSettings, "Settings");
     ImGui::NewLine();
@@ -494,7 +494,7 @@ void RenderHostTab() {
     ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(1.0f, 1.0f, 1.0f, 1.0f));
     ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.0f, 0.0f, 0.0f, 1.0f));
     
-    if (ImGui::Button(isHostRunning ? "Stop server" : "Host", ImVec2(350, 40))) {
+    if (ImGui::Button(isHostRunning ? "Stop server" : "Host##HostActionBtn", ImVec2(350, 40))) {
         if (hostConfigPath.empty()) {
             showNoConfigWarning = true;
         } else {
@@ -519,7 +519,7 @@ void RenderHostTab() {
     }
 
     ImGui::SetCursorPos(ImVec2(ImGui::GetWindowWidth() - 400, ImGui::GetWindowHeight() - 200));
-    if (ImGui::Button("Join", ImVec2(350, 40))) {
+    if (ImGui::Button("Join##HostTabJoinBtn", ImVec2(350, 40))) {
         if (!appCfg.selected_username.empty()) {
             StartJoinProcess("127.0.0.1", currentPort);
         }
@@ -558,7 +558,7 @@ void RenderJoinTab() {
     ImGui::SetCursorPos(ImVec2(ImGui::GetWindowWidth() - 120, ImGui::GetWindowHeight() - 100));
     ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(1.0f, 1.0f, 1.0f, 1.0f));
     ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.0f, 0.0f, 0.0f, 1.0f));
-    if (ImGui::Button("Join", ImVec2(100, 40))) {
+    if (ImGui::Button("Join##JoinTabJoinBtn", ImVec2(100, 40))) {
         if (!appCfg.selected_username.empty()) {
             StartJoinProcess(currentIp, currentPort);
         }
