@@ -376,7 +376,7 @@ void StartRFDProcess() {
 }
 
 void StartJoinProcess(const std::string& targetIp, const std::string& targetPort) {
-    std::string cmd = appCfg.executable_name + " -h " + targetIp + " -p " + targetPort + " -u " + appCfg.selected_username;
+    std::string cmd = appCfg.executable_name + " player -h " + targetIp + " -p " + targetPort + " -u " + appCfg.selected_username;
     
     STARTUPINFOA siStartInfo;
     PROCESS_INFORMATION piClientInfo;
