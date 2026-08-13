@@ -21,16 +21,13 @@
 #pragma comment(lib, "windowscodecs.lib")
 #pragma comment(lib, "ole32.lib")
 
-
 static ID3D11Device*            g_pd3dDevice = nullptr;
 static ID3D11DeviceContext*     g_pd3dDeviceContext = nullptr;
 static IDXGISwapChain*          g_pSwapChain = nullptr;
 static ID3D11RenderTargetView*  g_mainRenderTargetView = nullptr;
 
-
 static std::ofstream g_logFile;
 static std::string g_currentLogPath = "";
-
 
 ImTextureID LoadTexture(const std::string& path) {
     if (!g_pd3dDevice) return (ImTextureID)0;
@@ -323,6 +320,9 @@ void StopRFDProcess() {
 void StartRFDProcess() {
     if (isHostRunning) return;
 
+    SetEnvironmentVariableA("PYTHONIOENCODING", "utf-8");
+    SetEnvironmentVariableA("PYTHONUTF8", "1");
+
     std::filesystem::create_directories("logs");
 
     g_currentLogPath = GetTimestampFilename();
@@ -336,7 +336,6 @@ void StartRFDProcess() {
     CreatePipe(&hChildStd_OUT_Rd, &hChildStd_OUT_Wr, &saAttr, 0);
     SetHandleInformation(hChildStd_OUT_Rd, HANDLE_FLAG_INHERIT, 0);
 
-    
     std::string cmd = appCfg.executable_name + " server --config \"" + hostConfigPath + "\" -p " + currentPort;
     if (outputOption == 1) {
         cmd += " --loud";
@@ -376,6 +375,9 @@ void StartRFDProcess() {
 }
 
 void StartJoinProcess(const std::string& targetIp, const std::string& targetPort) {
+    SetEnvironmentVariableA("PYTHONIOENCODING", "utf-8");
+    SetEnvironmentVariableA("PYTHONUTF8", "1");
+
     std::string cmd = appCfg.executable_name + " player -h " + targetIp + " -p " + targetPort + " -u " + appCfg.selected_username;
     
     STARTUPINFOA siStartInfo;
