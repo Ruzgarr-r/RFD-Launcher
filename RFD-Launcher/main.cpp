@@ -18,13 +18,13 @@
 #pragma comment(lib, "windowscodecs.lib")
 #pragma comment(lib, "ole32.lib")
 
-// Direct3D 11 Global Değişkenleri
+
 static ID3D11Device*            g_pd3dDevice = nullptr;
 static ID3D11DeviceContext*     g_pd3dDeviceContext = nullptr;
 static IDXGISwapChain*          g_pSwapChain = nullptr;
 static ID3D11RenderTargetView*  g_mainRenderTargetView = nullptr;
 
-// Windows Native WIC (Windows Imaging Component) kullanarak ImGui Texture Yükleyici
+
 ImTextureID LoadTexture(const std::string& path) {
     if (!g_pd3dDevice) return (ImTextureID)0;
 
@@ -46,10 +46,10 @@ ImTextureID LoadTexture(const std::string& path) {
 
     IWICFormatConverter* pConverter = NULL;
     hr = pFactory->CreateFormatConverter(&pConverter);
-    if (FAILED(hr)) { pFrame->Release(); pDecoder->Release(); pFactory->Release(); return (ImTextureID)0; }
+    if (FAILED(hr)) { pFrame->Release(); pDecoder->Release(); return (ImTextureID)0; }
 
     hr = pConverter->Initialize(pFrame, GUID_WICPixelFormat32bppRGBA, WICBitmapDitherTypeNone, NULL, 0.0, WICBitmapPaletteTypeCustom);
-    if (FAILED(hr)) { pConverter->Release(); pFrame->Release(); pDecoder->Release(); pFactory->Release(); return (ImTextureID)0; }
+    if (FAILED(hr)) { pConverter->Release(); pFrame->Release(); pDecoder->Release(); return (ImTextureID)0; }
 
     UINT width = 0, height = 0;
     pConverter->GetSize(&width, &height);
@@ -346,6 +346,8 @@ void StartJoinProcess(const std::string& targetIp, const std::string& targetPort
 }
 
 void RenderTopBar() {
+    ImGui::PushID("TopBarScope");
+
     ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4(0.168f, 0.168f, 0.168f, 1.0f)); 
     ImGui::BeginChild("TopBar", ImVec2(0, 60), false);
     
@@ -381,11 +383,14 @@ void RenderTopBar() {
         }
         
         if (ImGui::BeginPopup("UserSelectPopup")) {
+            int userIdx = 0;
             for (const auto& uname : appCfg.usernames) {
+                ImGui::PushID(userIdx++);
                 if (ImGui::Selectable(uname.c_str())) {
                     appCfg.selected_username = uname;
                     SaveAppConfig();
                 }
+                ImGui::PopID();
             }
             ImGui::EndPopup();
         }
@@ -420,9 +425,13 @@ void RenderTopBar() {
 
     ImGui::EndChild();
     ImGui::PopStyleColor();
+
+    ImGui::PopID();
 }
 
 void RenderTabButtons() {
+    ImGui::PushID("TabButtonsScope");
+
     ImVec2 btnSize(100, 40);
     ImVec4 activeCol = ImVec4(0.121f, 0.121f, 0.121f, 1.0f); 
     ImVec4 inactiveCol = ImVec4(0.168f, 0.168f, 0.168f, 1.0f); 
@@ -443,14 +452,18 @@ void RenderTabButtons() {
         ImGui::SameLine();
     };
 
-    DrawTab(0, texHost, "Host##TabBtn");
-    DrawTab(1, texJoin, "Join##TabBtn");
+    DrawTab(0, texHost, "Host");
+    DrawTab(1, texJoin, "Join");
     DrawTab(2, texLog, "Logs");
     DrawTab(3, texSettings, "Settings");
     ImGui::NewLine();
+
+    ImGui::PopID();
 }
 
 void RenderHostTab() {
+    ImGui::PushID("HostTabScope");
+
     ImGui::PushFont(ImGui::GetIO().Fonts->Fonts[0]);
     ImGui::SetWindowFontScale(2.5f);
     ImGui::TextColored(ImVec4(1.0f, 1.0f, 1.0f, 1.0f), "Host");
@@ -494,7 +507,7 @@ void RenderHostTab() {
     ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(1.0f, 1.0f, 1.0f, 1.0f));
     ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.0f, 0.0f, 0.0f, 1.0f));
     
-    if (ImGui::Button(isHostRunning ? "Stop server" : "Host##HostActionBtn", ImVec2(350, 40))) {
+    if (ImGui::Button(isHostRunning ? "Stop server" : "Host", ImVec2(350, 40))) {
         if (hostConfigPath.empty()) {
             showNoConfigWarning = true;
         } else {
@@ -519,14 +532,18 @@ void RenderHostTab() {
     }
 
     ImGui::SetCursorPos(ImVec2(ImGui::GetWindowWidth() - 400, ImGui::GetWindowHeight() - 200));
-    if (ImGui::Button("Join##HostTabJoinBtn", ImVec2(350, 40))) {
+    if (ImGui::Button("Join", ImVec2(350, 40))) {
         if (!appCfg.selected_username.empty()) {
             StartJoinProcess("127.0.0.1", currentPort);
         }
     }
+
+    ImGui::PopID();
 }
 
 void RenderJoinTab() {
+    ImGui::PushID("JoinTabScope");
+
     ImGui::PushFont(ImGui::GetIO().Fonts->Fonts[0]);
     ImGui::SetWindowFontScale(2.5f);
     ImGui::TextColored(ImVec4(1.0f, 1.0f, 1.0f, 1.0f), "Join");
@@ -558,12 +575,14 @@ void RenderJoinTab() {
     ImGui::SetCursorPos(ImVec2(ImGui::GetWindowWidth() - 120, ImGui::GetWindowHeight() - 100));
     ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(1.0f, 1.0f, 1.0f, 1.0f));
     ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.0f, 0.0f, 0.0f, 1.0f));
-    if (ImGui::Button("Join##JoinTabJoinBtn", ImVec2(100, 40))) {
+    if (ImGui::Button("Join", ImVec2(100, 40))) {
         if (!appCfg.selected_username.empty()) {
             StartJoinProcess(currentIp, currentPort);
         }
     }
     ImGui::PopStyleColor(2);
+
+    ImGui::PopID();
 }
 
 void RenderLogsTab() {
