@@ -5,6 +5,9 @@
 #include <sstream>
 #include <filesystem>
 #include <algorithm>
+#include <chrono>
+#include <ctime>
+#include <iomanip>
 #include <windows.h>
 #include <commdlg.h>
 #include <d3d11.h>
@@ -23,6 +26,10 @@ static ID3D11Device*            g_pd3dDevice = nullptr;
 static ID3D11DeviceContext*     g_pd3dDeviceContext = nullptr;
 static IDXGISwapChain*          g_pSwapChain = nullptr;
 static ID3D11RenderTargetView*  g_mainRenderTargetView = nullptr;
+
+
+static std::ofstream g_logFile;
+static std::string g_currentLogPath = "";
 
 
 ImTextureID LoadTexture(const std::string& path) {
@@ -143,6 +150,17 @@ std::string TrimString(const std::string& str) {
     return str.substr(first, (last - first + 1));
 }
 
+std::string GetTimestampFilename() {
+    auto now = std::chrono::system_clock::now();
+    auto in_time_t = std::chrono::system_clock::to_time_t(now);
+    std::tm tm;
+    localtime_s(&tm, &in_time_t);
+
+    std::ostringstream ss;
+    ss << "logs/log_" << std::put_time(&tm, "%Y-%m-%d_%H-%M-%S") << ".txt";
+    return ss.str();
+}
+
 void LoadAppConfig() {
     std::ifstream file(configFilePath);
     if (file.is_open()) {
@@ -254,6 +272,12 @@ void ReadRFDLogs() {
         if (bSuccess && dwRead > 0) {
             chBuf[dwRead] = '\0';
             logBuffer += chBuf;
+
+            
+            if (g_logFile.is_open()) {
+                g_logFile << chBuf;
+                g_logFile.flush();
+            }
         }
     }
 
@@ -261,6 +285,12 @@ void ReadRFDLogs() {
     if (GetExitCodeProcess(piProcInfo.hProcess, &exitCode)) {
         if (exitCode != STILL_ACTIVE) {
             isHostRunning = false;
+
+            if (g_logFile.is_open()) {
+                g_logFile << "\n[LAUNCHER] Process exited with code: " << exitCode << "\n";
+                g_logFile.close();
+            }
+
             CloseHandle(piProcInfo.hProcess);
             CloseHandle(piProcInfo.hThread);
             CloseHandle(hChildStd_OUT_Rd);
@@ -275,6 +305,11 @@ void StopRFDProcess() {
         system(killCmd.c_str());
         isHostRunning = false;
         
+        if (g_logFile.is_open()) {
+            g_logFile << "\n[LAUNCHER] Process stopped manually by user.\n";
+            g_logFile.close();
+        }
+
         if (piProcInfo.hProcess) {
             CloseHandle(piProcInfo.hProcess);
             CloseHandle(piProcInfo.hThread);
@@ -288,6 +323,13 @@ void StopRFDProcess() {
 
 void StartRFDProcess() {
     if (isHostRunning) return;
+
+    
+    std::filesystem::create_directories("logs");
+
+    
+    g_currentLogPath = GetTimestampFilename();
+    g_logFile.open(g_currentLogPath, std::ios::out | std::ios::trunc);
 
     SECURITY_ATTRIBUTES saAttr; 
     saAttr.nLength = sizeof(SECURITY_ATTRIBUTES); 
@@ -304,6 +346,11 @@ void StartRFDProcess() {
         cmd += " -q";
     }
 
+    if (g_logFile.is_open()) {
+        g_logFile << "[LAUNCHER] Executing: " << cmd << "\n\n";
+        g_logFile.flush();
+    }
+
     STARTUPINFOA siStartInfo;
     ZeroMemory(&piProcInfo, sizeof(PROCESS_INFORMATION));
     ZeroMemory(&siStartInfo, sizeof(STARTUPINFOA));
@@ -315,11 +362,17 @@ void StartRFDProcess() {
     std::vector<char> cmdStr(cmd.begin(), cmd.end());
     cmdStr.push_back('\0');
 
-    BOOL bSuccess = CreateProcessA(NULL, cmdStr.data(), NULL, NULL, TRUE, 0, NULL, NULL, &siStartInfo, &piProcInfo);
+    
+    BOOL bSuccess = CreateProcessA(NULL, cmdStr.data(), NULL, NULL, TRUE, CREATE_NO_WINDOW, NULL, NULL, &siStartInfo, &piProcInfo);
     
     if (bSuccess) {
         isHostRunning = true;
         logBuffer.clear();
+    } else {
+        if (g_logFile.is_open()) {
+            g_logFile << "[LAUNCHER ERROR] CreateProcessA failed with Error Code: " << GetLastError() << "\n";
+            g_logFile.close();
+        }
     }
     
     CloseHandle(hChildStd_OUT_Wr);
@@ -555,7 +608,7 @@ void RenderJoinTab() {
     ImGui::Spacing();
 
     ImGui::SetCursorPos(ImVec2(ImGui::GetWindowWidth() - 400, ImGui::GetWindowHeight() - 150));
-    ImGui::Text("IP Adresi:");
+    ImGui::Text("IP Adress:");
     ImGui::SetCursorPosX(ImGui::GetWindowWidth() - 400);
     char ipBuf[128];
     strcpy_s(ipBuf, currentIp.c_str());
@@ -586,7 +639,7 @@ void RenderJoinTab() {
 }
 
 void RenderLogsTab() {
-    if (isHostRunning) {
+    if (isHostRunning || !logBuffer.empty()) {
         ImGui::BeginChild("LogRegion", ImVec2(0, 0), true, ImGuiWindowFlags_AlwaysVerticalScrollbar);
         ImGui::TextUnformatted(logBuffer.c_str());
         ImGui::EndChild();
@@ -628,7 +681,7 @@ void MainLoopUpdate() {
     ImGui::PopStyleColor();
 }
 
-// Direct3D11 Cihaz Oluşturma ve Temizleme Yardımcıları
+
 void CreateRenderTarget() {
     ID3D11Texture2D* pBackBuffer = nullptr;
     g_pSwapChain->GetBuffer(0, IID_PPV_ARGS(&pBackBuffer));
@@ -707,7 +760,7 @@ LRESULT WINAPI WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) {
     return ::DefWindowProcA(hWnd, msg, wParam, lParam);
 }
 
-// Ana Giriş Noktası (WinMain)
+
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow) {
     CoInitializeEx(NULL, COINIT_APARTMENTTHREADED);
 
