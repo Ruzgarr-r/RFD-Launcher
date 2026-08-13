@@ -392,14 +392,14 @@ void RenderTopBar() {
     }
 
     if (showAddUserPopup) {
-        ImGui::OpenPopup("Kullanici Ekle");
+        ImGui::OpenPopup("Add User");
         showAddUserPopup = false;
     }
 
-    if (ImGui::BeginPopupModal("Kullanici Ekle", NULL, ImGuiWindowFlags_AlwaysAutoResize)) {
-        ImGui::Text("Kullanici adi belirleyin");
+    if (ImGui::BeginPopupModal("Add User", NULL, ImGuiWindowFlags_AlwaysAutoResize)) {
+        ImGui::Text("Select a username");
         ImGui::InputText("##newuname", newUsernameBuf, IM_ARRAYSIZE(newUsernameBuf));
-        if (ImGui::Button("Onayla", ImVec2(120, 0))) {
+        if (ImGui::Button("Accept", ImVec2(120, 0))) {
             std::string newUname = std::string(newUsernameBuf);
             if (!newUname.empty()) {
                 appCfg.usernames.push_back(newUname);
@@ -577,7 +577,7 @@ void RenderLogsTab() {
 }
 
 void RenderSettingsTab() {
-    ImGui::TextColored(ImVec4(0.5f, 0.5f, 0.5f, 1.0f), "Settings bölümü şimdilik çalışmıyor.");
+    ImGui::TextColored(ImVec4(0.5f, 0.5f, 0.5f, 1.0f), "settings is w.i.p.");
 }
 
 void InitializeApp() {
