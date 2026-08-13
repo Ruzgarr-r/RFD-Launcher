@@ -56,7 +56,7 @@ ImTextureID LoadTexture(const std::string& path) {
     if (FAILED(hr)) { pFrame->Release(); pDecoder->Release(); return (ImTextureID)0; }
 
     hr = pConverter->Initialize(pFrame, GUID_WICPixelFormat32bppRGBA, WICBitmapDitherTypeNone, NULL, 0.0, WICBitmapPaletteTypeCustom);
-    if (FAILED(hr)) { pConverter->Release(); pFrame->Release(); pDecoder->Release(); return (ImTextureID)0; }
+    if (FAILED(hr)) { pConverter->Release(); pFrame->Release(); return (ImTextureID)0; }
 
     UINT width = 0, height = 0;
     pConverter->GetSize(&width, &height);
@@ -273,7 +273,6 @@ void ReadRFDLogs() {
             chBuf[dwRead] = '\0';
             logBuffer += chBuf;
 
-            
             if (g_logFile.is_open()) {
                 g_logFile << chBuf;
                 g_logFile.flush();
@@ -324,10 +323,8 @@ void StopRFDProcess() {
 void StartRFDProcess() {
     if (isHostRunning) return;
 
-    
     std::filesystem::create_directories("logs");
 
-    
     g_currentLogPath = GetTimestampFilename();
     g_logFile.open(g_currentLogPath, std::ios::out | std::ios::trunc);
 
@@ -339,7 +336,8 @@ void StartRFDProcess() {
     CreatePipe(&hChildStd_OUT_Rd, &hChildStd_OUT_Wr, &saAttr, 0);
     SetHandleInformation(hChildStd_OUT_Rd, HANDLE_FLAG_INHERIT, 0);
 
-    std::string cmd = appCfg.executable_name + " --config \"" + hostConfigPath + "\" -p " + currentPort;
+    
+    std::string cmd = appCfg.executable_name + " server --config \"" + hostConfigPath + "\" -p " + currentPort;
     if (outputOption == 1) {
         cmd += " --loud";
     } else if (outputOption == 2) {
@@ -362,7 +360,6 @@ void StartRFDProcess() {
     std::vector<char> cmdStr(cmd.begin(), cmd.end());
     cmdStr.push_back('\0');
 
-    
     BOOL bSuccess = CreateProcessA(NULL, cmdStr.data(), NULL, NULL, TRUE, CREATE_NO_WINDOW, NULL, NULL, &siStartInfo, &piProcInfo);
     
     if (bSuccess) {
@@ -681,7 +678,6 @@ void MainLoopUpdate() {
     ImGui::PopStyleColor();
 }
 
-
 void CreateRenderTarget() {
     ID3D11Texture2D* pBackBuffer = nullptr;
     g_pSwapChain->GetBuffer(0, IID_PPV_ARGS(&pBackBuffer));
@@ -759,7 +755,6 @@ LRESULT WINAPI WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) {
     }
     return ::DefWindowProcA(hWnd, msg, wParam, lParam);
 }
-
 
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow) {
     CoInitializeEx(NULL, COINIT_APARTMENTTHREADED);
