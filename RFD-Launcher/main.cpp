@@ -26,7 +26,7 @@ static ID3D11RenderTargetView*  g_mainRenderTargetView = nullptr;
 
 // Windows Native WIC (Windows Imaging Component) kullanarak ImGui Texture Yükleyici
 ImTextureID LoadTexture(const std::string& path) {
-    if (!g_pd3dDevice) return nullptr;
+    if (!g_pd3dDevice) return (ImTextureID)0;
 
     int size_needed = MultiByteToWideChar(CP_UTF8, 0, path.c_str(), (int)path.length(), NULL, 0);
     std::wstring wpath(size_needed, 0);
@@ -34,22 +34,22 @@ ImTextureID LoadTexture(const std::string& path) {
 
     IWICImagingFactory* pFactory = NULL;
     HRESULT hr = CoCreateInstance(CLSID_WICImagingFactory, NULL, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&pFactory));
-    if (FAILED(hr)) return nullptr;
+    if (FAILED(hr)) return (ImTextureID)0;
 
     IWICBitmapDecoder* pDecoder = NULL;
     hr = pFactory->CreateDecoderFromFilename(wpath.c_str(), NULL, GENERIC_READ, WICDecodeMetadataCacheOnDemand, &pDecoder);
-    if (FAILED(hr)) { pFactory->Release(); return nullptr; }
+    if (FAILED(hr)) { pFactory->Release(); return (ImTextureID)0; }
 
     IWICBitmapFrameDecode* pFrame = NULL;
     hr = pDecoder->GetFrame(0, &pFrame);
-    if (FAILED(hr)) { pDecoder->Release(); pFactory->Release(); return nullptr; }
+    if (FAILED(hr)) { pDecoder->Release(); pFactory->Release(); return (ImTextureID)0; }
 
     IWICFormatConverter* pConverter = NULL;
     hr = pFactory->CreateFormatConverter(&pConverter);
-    if (FAILED(hr)) { pFrame->Release(); pDecoder->Release(); pFactory->Release(); return nullptr; }
+    if (FAILED(hr)) { pFrame->Release(); pDecoder->Release(); pFactory->Release(); return (ImTextureID)0; }
 
     hr = pConverter->Initialize(pFrame, GUID_WICPixelFormat32bppRGBA, WICBitmapDitherTypeNone, NULL, 0.0, WICBitmapPaletteTypeCustom);
-    if (FAILED(hr)) { pConverter->Release(); pFrame->Release(); pDecoder->Release(); pFactory->Release(); return nullptr; }
+    if (FAILED(hr)) { pConverter->Release(); pFrame->Release(); pDecoder->Release(); pFactory->Release(); return (ImTextureID)0; }
 
     UINT width = 0, height = 0;
     pConverter->GetSize(&width, &height);
@@ -62,7 +62,7 @@ ImTextureID LoadTexture(const std::string& path) {
     pDecoder->Release();
     pFactory->Release();
 
-    if (FAILED(hr)) return nullptr;
+    if (FAILED(hr)) return (ImTextureID)0;
 
     D3D11_TEXTURE2D_DESC desc;
     ZeroMemory(&desc, sizeof(desc));
@@ -82,7 +82,7 @@ ImTextureID LoadTexture(const std::string& path) {
 
     ID3D11Texture2D* pTex = NULL;
     hr = g_pd3dDevice->CreateTexture2D(&desc, &initData, &pTex);
-    if (FAILED(hr)) return nullptr;
+    if (FAILED(hr)) return (ImTextureID)0;
 
     ID3D11ShaderResourceView* pSRV = NULL;
     D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc;
@@ -94,7 +94,7 @@ ImTextureID LoadTexture(const std::string& path) {
     hr = g_pd3dDevice->CreateShaderResourceView(pTex, &srvDesc, &pSRV);
     pTex->Release();
 
-    if (FAILED(hr)) return nullptr;
+    if (FAILED(hr)) return (ImTextureID)0;
 
     return (ImTextureID)pSRV;
 }
